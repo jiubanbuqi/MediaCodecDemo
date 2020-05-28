@@ -16,7 +16,7 @@ public class AudioRecorder {
 
     private static final String TAG = "AudioRecorder";
 
-    private static final int DEFAULT_SAMPLE_RATE = 48000;
+    private static final int DEFAULT_SAMPLE_RATE = 44100;
     private static final int DEFAULT_PCM_DATA_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
     private static final int DEFAULT_CHANNELS = 2;
 

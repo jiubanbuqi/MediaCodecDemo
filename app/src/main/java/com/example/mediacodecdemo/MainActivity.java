@@ -6,33 +6,16 @@ import androidx.databinding.DataBindingUtil;
 
 import android.Manifest;
 import android.graphics.SurfaceTexture;
-import android.media.AudioManager;
-import android.media.AudioRecord;
-import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
-import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.SystemClock;
-import android.util.Log;
 import android.view.Surface;
-import android.view.SurfaceHolder;
 import android.view.TextureView;
 
 import com.example.mediacodecdemo.databinding.ActivityMainBinding;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import io.reactivex.functions.Consumer;
-
-import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO;
-import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     CameraCapture cameraCapture;
     AudioRecorder audioRecorder;
     VideoRecoder videoRecoder;
+    VideoEncoder videoEncoder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,15 +57,16 @@ public class MainActivity extends AppCompatActivity {
 
             if(flag){
                 flag = false;
-                videoRecoder = new VideoRecoder();
-
+//                videoRecoder = new VideoRecoder();
                 cameraCapture = new CameraCapture(surface);
-                videoRecoder.setVideoParams(cameraCapture.getWidth(),cameraCapture.getHeight(),cameraCapture.getFrameRate(),1024*1000);
+                videoEncoder = new VideoEncoder(cameraCapture.getWidth(),cameraCapture.getHeight(),cameraCapture.getFrameRate(),1024*1000);
+//                videoRecoder.setVideoParams(cameraCapture.getWidth(),cameraCapture.getHeight(),cameraCapture.getFrameRate(),1024*1000);
                 cameraCapture.setCameraRecordCallback(new CameraCapture.CameraRecordCallback() {
                     @Override
                     public void onRecordImage(byte[] data) {
                         try {
-                            videoRecoder.putVideoData(data,0,data.length);
+//                            videoRecoder.putVideoData(data,0,data.length);
+                            videoEncoder.putVideoData(data,0,data.length);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -89,22 +74,26 @@ public class MainActivity extends AppCompatActivity {
                 });
                 cameraCapture.startCamera();
 
+
                 audioRecorder = new AudioRecorder();
-                videoRecoder.setAudioParams(audioRecorder.getChannels(),audioRecorder.getSampleRate(),128*1000);
+//                videoRecoder.setAudioParams(audioRecorder.getChannels(),audioRecorder.getSampleRate(),128*1000);
                 audioRecorder.setRecordCallback(new AudioRecorder.AudioRecordCallback() {
                     @Override
                     public void onRecordSample(byte[] data) {
-                        try {
-                            videoRecoder.putAudioData(data,0,data.length);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+//                        try {
+//                            videoRecoder.putAudioData(data,0,data.length);
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+                        videoEncoder.putAudioData(data,0,data.length);
                     }
                 });
                 audioRecorder.start();
 
-                videoRecoder.init();
-                videoRecoder.start();
+                videoEncoder.start();
+//
+//                videoRecoder.init();
+//                videoRecoder.start();
             }
 
 
@@ -120,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
 
             cameraCapture.stopCamera();
+            videoEncoder.start();
             audioRecorder.stop();
             videoRecoder.stop();
             return true;
